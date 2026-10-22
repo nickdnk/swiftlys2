@@ -126,10 +126,6 @@ void ConsoleLogger::Initialize()
         }
     }
 
-    // The worker is joined in Shutdown() and in the destructor: a detached thread could wake
-    // after the global logger has been destroyed at exit, swap the destroyed queue into its
-    // local one and free its storage a second time from another thread, which corrupts the
-    // engine allocator's free lists and leaves the server spinning in exit().
     StopWorker();
     m_running = true;
     m_thread = std::thread(&ConsoleLogger::WorkerThread, this);
@@ -157,8 +153,6 @@ void ConsoleLogger::Shutdown()
 
 ConsoleLogger::~ConsoleLogger()
 {
-    // Only the thread is stopped here: the console output and its listeners may already be
-    // gone when static destructors run, and Shutdown() has normally been called before.
     StopWorker();
 }
 
